@@ -23,7 +23,7 @@ db_config = {
 # Load model prediksi 6 jam
 def load_weather_model():
     try:
-        model_path = os.path.join(os.path.dirname(__file__), 'weather_model_6h.pkl')
+        model_path = os.path.join(os.path.dirname(__file__), 'weather_model.pkl')
         print(f"Loading model from: {model_path}")
         model_data = joblib.load(model_path)
         print("Model 6 jam loaded.")
