@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Prediction System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background-color: #4285f4;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .weather-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .prediction {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .sunny {
+            background-color: #ffeb3b;
+            color: #ff9800;
+        }
+        .cloudy {
+            background-color: #e0e0e0;
+            color: #616161;
+        }
+        .partly-cloudy {
+            background-color: #bbdefb;
+            color: #1976d2;
+        }
+        .rainy {
+            background-color: #bbdefb;
+            color: #0d47a1;
+        }
+        .overcast {
+            background-color: #9e9e9e;
+            color: #212121;
+        }
+        .sensor-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .sensor-item {
+            background-color: #f1f8e9;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .sensor-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .timestamp {
+            color: #757575;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .refresh-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .refresh-btn:hover {
+            background-color: #3367d6;
+        }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            color: #757575;
+        }
+        .time-highlight {
+            font-weight: bold;
+            color: #4285f4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Weather Prediction System</h1>
+            <p>6-hour weather forecast based on current sensor data</p>
+        </div>
+
+        {% if prediction %}
+        <div class="weather-card">
+            <h2>Weather Prediction</h2>
+            <p class="timestamp">Prediction for: <span class="time-highlight">{{ prediction.prediction_timestamp }}</span></p>
+            
+            <div class="prediction {{ prediction.prediction.lower().replace(' ', '-') }}">
+                {{ prediction.prediction }}
+            </div>
+            
+            <h3>Current Sensor Data</h3>
+            <p class="timestamp">Last reading: <span class="time-highlight">{{ prediction.last_data_timestamp }}</span></p>
+            
+            <div class="sensor-data">
+                <div class="sensor-item">
+                    <div>Temperature</div>
+                    <div class="sensor-value">{{ prediction.features.temperature }}°C</div>
+                </div>
+                <div class="sensor-item">
+                    <div>Humidity</div>
+                    <div class="sensor-value">{{ prediction.features.humidity }}%</div>
+                </div>
+                <div class="sensor-item">
+                    <div>Air Pressure</div>
+                    <div class="sensor-value">{{ prediction.features.air_pressure }} hPa</div>
+                </div>
+                <div class="sensor-item">
+                    <div>Wind Speed</div>
+                    <div class="sensor-value">{{ prediction.features.wind_speed }} m/s</div>
+                </div>
+            </div>
+            
+            <button class="refresh-btn" onclick="window.location.reload()">Refresh Data</button>
+        </div>
+        {% else %}
+        <div class="weather-card">
+            <h2>Error</h2>
+            <p>Could not generate weather prediction. Please check the system status.</p>
+            <button class="refresh-btn" onclick="window.location.reload()">Try Again</button>
+        </div>
+        {% endif %}
+        
+        <div class="status">
+            <p>System Status: <span id="status">Checking...</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Check system status
+        fetch('/api/health')
+            .then(response => response.json())
+            .then(data => {
+                const statusElement = document.getElementById('status');
+                if (data.status === 'running') {
+                    let statusText = 'Operational';
+                    if (data.database === 'unhealthy' || data.model === 'unhealthy') {
+                        statusText = 'Degraded';
+                        statusElement.style.color = '#ff9800';
+                    } else {
+                        statusElement.style.color = '#2e7d32';
+                    }
+                    statusElement.textContent = statusText;
+                } else {
+                    statusElement.textContent = 'Offline';
+                    statusElement.style.color = '#d32f2f';
+                }
+            })
+            .catch(error => {
+                document.getElementById('status').textContent = 'Offline';
+                document.getElementById('status').style.color = '#d32f2f';
+            });
+
+        // Auto-refresh every 5 minutes
+        setTimeout(function() {
+            window.location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>

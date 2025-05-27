@@ -1,0 +1,16 @@
+[phases.setup]
+nix_pkgs = [
+  "gcc",
+  "zlib",
+  "openblas",
+  "gfortran",
+  "python311Distutils",  # Khusus untuk Python 3.11
+  "libffi",
+  "openssl"
+]
+
+[phases.install]
+cmd = "pip install --upgrade pip setuptools wheel && pip install --no-cache-dir -r requirements.txt"
+
+[start]
+cmd = "gunicorn --bind 0.0.0.0:$PORT app:app"
